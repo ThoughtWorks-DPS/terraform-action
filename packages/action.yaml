@@ -64,6 +64,11 @@ inputs:
     required: false
     default: ""
 
+  conftest-version:
+    description: Specify conftest version or "installed" to perform test. Leave blank to skip.
+    required: false
+    default: ""
+
 runs:
   using: "composite"
   
@@ -440,4 +445,31 @@ runs:
           sudo tar -xzf "trivy_${{ inputs.trivy-version }}_Linux-64bit.tar.gz"
           sudo mv trivy /usr/local/bin/trivy
           trivy --version
+        fi
+    - name: install conftest
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        #!/usr/bin/env bash
+        if [[ "${{ inputs.conftest-version }}" != "installed" && "${{ inputs.conftest-version }}" != "" ]]; then
+          echo "Install conftest v${{ inputs.conftest-version }}"
+          
+          # download conftest package and verification packages
+          curl -SLO "https://github.com/open-policy-agent/conftest/releases/download/v${{ inputs.conftest-version }}/checksums.txt"
+          curl -SLO "https://github.com/open-policy-agent/conftest/releases/download/v${{ inputs.conftest-version }}/conftest_${{ inputs.conftest-version }}_Linux_arm64.tar.gz"
+
+          # verify conftest package sha
+          if result=$(shasum --ignore-missing --algorithm 256 --check checksums.txt 2>&1); then
+              echo "Verified conftest package sha"
+          else
+              echo "Unable to verify conftest package sha"
+              echo "shasum Output:"
+              echo "$result"
+              exit 1
+          fi
+
+          # install and smoke test conftest
+          sudo tar -xzf "conftest_${{ inputs.conftest-version }}_Linux_arm64.tar.gz"
+          sudo mv conftest /usr/local/bin/conftest
+          conftest --version
         fi
