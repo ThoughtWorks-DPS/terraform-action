@@ -5,7 +5,7 @@ name: packages
 description: |
   Specify version to install optional terraform-action@workflows packages and
   perform scan. Use "installed" to perform static analysis with package
-  pre-installed on Runner. 
+  pre-installed on Runner.
 
 inputs:
 
@@ -71,9 +71,9 @@ inputs:
 
 runs:
   using: "composite"
-  
+
   steps:
-    - name: install cosign 
+    - name: install cosign
       uses: sigstore/cosign-installer@main
       with:
         cosign-release: v${{ inputs.cosign-version }}
@@ -453,7 +453,7 @@ runs:
         #!/usr/bin/env bash
         if [[ "${{ inputs.conftest-version }}" != "installed" && "${{ inputs.conftest-version }}" != "" ]]; then
           echo "Install conftest v${{ inputs.conftest-version }}"
-          
+
           # download conftest package and verification packages
           curl -SLO "https://github.com/open-policy-agent/conftest/releases/download/v${{ inputs.conftest-version }}/checksums.txt"
           curl -SLO "https://github.com/open-policy-agent/conftest/releases/download/v${{ inputs.conftest-version }}/conftest_${{ inputs.conftest-version }}_Linux_arm64.tar.gz"

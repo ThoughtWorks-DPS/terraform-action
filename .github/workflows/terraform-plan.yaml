@@ -1,4 +1,5 @@
 # yamllint disable rule:line-length
+# yamllint disable rule:truthy
 ---
 run-name: Terraform plan
 
@@ -216,7 +217,7 @@ jobs:
         uses: actions/checkout@v4.1.1
 
       - name: install terraform workflow packages
-        uses:  ThoughtWorks-DPS/terraform-action/packages@main
+        uses: ThoughtWorks-DPS/terraform-action/packages@main
         with:
           working-directory: ${{ inputs.working-directory }}
           cosign-version: ${{ inputs.cosign-version }}
@@ -242,7 +243,7 @@ jobs:
           terraform version
           terraform init ${{ inputs.terraform-init-additional-args }}
 
-      - name: evaluate canonical format of terraform files 
+      - name: evaluate canonical format of terraform files
         working-directory: ${{ inputs.working-directory }}
         shell: bash
         run: terraform fmt -check=false
@@ -253,7 +254,7 @@ jobs:
         run: terraform validate
 
       - name: optional tflint scan of terraform source files
-        uses:  ThoughtWorks-DPS/terraform-action/tflint@main
+        uses: ThoughtWorks-DPS/terraform-action/tflint@main
         with:
           working-directory: ${{ inputs.working-directory }}
           tflint-version: ${{ inputs.tflint-version }}
@@ -262,21 +263,21 @@ jobs:
           tflint-additional-args: ${{ inputs.tflint-additional-args }}
 
       - name: optional tfsec scan of terraform source files
-        uses:  ThoughtWorks-DPS/terraform-action/tfsec@main
+        uses: ThoughtWorks-DPS/terraform-action/tfsec@main
         with:
           working-directory: ${{ inputs.working-directory }}
           tfsec-version: ${{ inputs.tfsec-version }}
           tfsec-additional-args: ${{ inputs.tfsec-additional-args }}
 
       - name: optional checkov scan of terraform source files
-        uses:  ThoughtWorks-DPS/terraform-action/checkov@main
+        uses: ThoughtWorks-DPS/terraform-action/checkov@main
         with:
           working-directory: ${{ inputs.working-directory }}
           checkov-version: ${{ inputs.checkov-version }}
           checkov-additional-args: ${{ inputs.checkov-additional-args }}
 
       - name: optional snyk scan of terraform source files
-        uses:  ThoughtWorks-DPS/terraform-action/snyk@main
+        uses: ThoughtWorks-DPS/terraform-action/snyk@main
         with:
           working-directory: ${{ inputs.working-directory }}
           snyk-version: ${{ inputs.snyk-version }}
@@ -285,7 +286,7 @@ jobs:
           snyk-additional-args: ${{ inputs.snyk-additional-args }}
 
       - name: optional terrascan scan of terraform source files
-        uses:  ThoughtWorks-DPS/terraform-action/terrascan@main
+        uses: ThoughtWorks-DPS/terraform-action/terrascan@main
         with:
           working-directory: ${{ inputs.working-directory }}
           terrascan-version: ${{ inputs.terrascan-version }}
@@ -294,14 +295,14 @@ jobs:
           terrascan-policy-type: ${{ inputs.terrascan-policy-type }}
 
       - name: optional driftctl assessment
-        uses:  ThoughtWorks-DPS/terraform-action/driftctl@main
+        uses: ThoughtWorks-DPS/terraform-action/driftctl@main
         with:
           working-directory: ${{ inputs.working-directory }}
           driftctl-version: ${{ inputs.driftctl-version }}
           driftctl-additional-args: ${{ inputs.driftctl-additional-args }}
 
       - name: optional trivy scan
-        uses:  ThoughtWorks-DPS/terraform-action/trivy@main
+        uses: ThoughtWorks-DPS/terraform-action/trivy@main
         with:
           working-directory: ${{ inputs.working-directory }}
           trivy-version: ${{ inputs.trivy-version }}
@@ -311,5 +312,3 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         shell: bash
         run: ${{ inputs.after-static-analysis }}
-
-      # echo "action_state=yellow" >> "$GITHUB_ENV"

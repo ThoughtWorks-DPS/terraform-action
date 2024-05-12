@@ -68,4 +68,3 @@ runs:
           tflint --init
           tflint ${{ inputs.tflint-additional-args }}
         fi
-        
