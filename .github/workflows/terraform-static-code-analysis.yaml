@@ -1,6 +1,6 @@
 # yamllint disable rule:line-length
 ---
-run-name: static code analysis
+run-name: terraform static code analysis
 
 on:
   workflow_call:

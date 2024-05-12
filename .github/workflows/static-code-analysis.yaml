@@ -1,6 +1,6 @@
 # yamllint disable rule:line-length
 ---
-name: static code analysis
+run-name: static code analysis
 
 on:
   workflow_call:
