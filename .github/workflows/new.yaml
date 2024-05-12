@@ -19,7 +19,7 @@ jobs:
   static-code-analysis:
     name: static code analysis
     runs-on: ubuntu-latest
-    container: alpine # twdps/circleci-infra-aws:alpine-stable
+    container: twdps/gha-container-base-image:alpine-stable
 
     steps:
       - name: checkout code
@@ -27,4 +27,6 @@ jobs:
 
       - name: check context
         shell: ash
-        run: apk list
+        run: |
+          apk list
+          op --help
