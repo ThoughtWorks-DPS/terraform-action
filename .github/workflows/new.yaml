@@ -1,5 +1,6 @@
 # yamllint disable rule:line-length
 # yamllint disable rule:truthy
+# yamllint disable rule:comments-indentation
 ---
 name: static code analysis
 
@@ -18,6 +19,24 @@ on:
         required: false
         type: string
         default: .
+
+      cosign-version:
+        description: Specify cosign version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
+      terraform-version:
+        description: Specify terraform version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
+      before-static-analysis:
+        description: optionally call ./.github/actions/before-static-analysis before performing static analysis
+        required: false
+        type: string
+        default: "false"
 
       job-container-image:
         description: default is latest
@@ -39,8 +58,90 @@ jobs:
       - name: checkout code
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29      # v4.1.6
 
-      - name: check context
-        shell: bash
-        run: |
-          apk list
-          op --help
+      - name: run custom before-static-analysis action
+        if: ${{ inputs.before-static-analysis != 'false' }}
+        uses: ./.github/actions/before-static-analysis
+        with:
+          instance: ${{ inputs.before-static-analysis }}
+
+      - name: install workflow dependencies
+        uses: ThoughtWorks-DPS/terraform-action/install@main
+        with:
+          cosign-version: ${{ inputs.cosign-version }}
+          terraform-version: ${{ inputs.terraform-version }}
+
+        # - install:
+        #     terraform-version: << parameters.terraform-version >>
+        #     tflint-version: << parameters.tflint-version >>
+        #     trivy-version: << parameters.trivy-version >>
+        #     checkov-version: << parameters.checkov-version >>
+        #     snyk-version: << parameters.snyk-version >>
+        #     terrascan-version: << parameters.terrascan-version >>
+        #     infracost-version: << parameters.infracost-version >>
+
+        # - run:
+        #     name: terraform init
+        #     working_directory: << parameters.working-directory >>
+        #     command: |
+        #       terraform version
+        #       terraform init << parameters.terraform-init-additional-args >>
+        # - when:
+        #     name: perform terraform validate
+        #     condition: << parameters.terraform-validate >>
+        #     steps:
+        #       - validate:
+        #           working-directory: << parameters.working-directory >>
+        # - when:
+        #     name: perform tflint scan of terraform source files
+        #     condition: << parameters.tflint-scan >>
+        #     steps:
+        #       - tflint:
+        #           working-directory: << parameters.working-directory >>
+        #           tflint-provider: << parameters.tflint-provider >>
+        #           tflint-additional-args: << parameters.tflint-additional-args >>
+        # - when:
+        #     name: perform trivy scan of terraform source files
+        #     condition: << parameters.trivy-scan >>
+        #     steps:
+        #       - trivy:
+        #           working-directory: << parameters.working-directory >>
+        #           trivy-commandline-args: << parameters.trivy-commandline-args >>
+        # - when:
+        #     name: run checkov scan of terraform source files
+        #     condition: << parameters.checkov-scan >>
+        #     steps:
+        #       - checkov:
+        #           working-directory: << parameters.working-directory >>
+        #           checkov-additional-args: << parameters.checkov-additional-args >>
+        # - when:
+        #     name: run Snyk IaC scan of terraform source files
+        #     condition: << parameters.snyk-scan >>
+        #     steps:
+        #       - snyk:
+        #           working-directory: << parameters.working-directory >>
+        #           snyk-token: << parameters.snyk-token >>
+        #           snyk-organization: << parameters.snyk-organization >>
+        #           snyk-additional-args: << parameters.snyk-additional-args >>
+        # - when:
+        #     name: run terrascan on repository files
+        #     condition: << parameters.terrascan-scan >>
+        #     steps:
+        #       - terrascan:
+        #           working-directory: << parameters.working-directory >>
+        #           terrascan-init-args: << parameters.terrascan-init-args >>
+        #           terrascan-iac-type: << parameters.terrascan-iac-type >>
+        #           terrascan-policy-type: << parameters.terrascan-policy-type >>
+        #           terrascan-custom-scan-args: << parameters.terrascan-custom-scan-args >>
+        # - when:
+        #     name: run infracost analysis
+        #     condition: << parameters.infracost-scan >>
+        #     steps:
+        #       - infracost:
+        #           working-directory: << parameters.working-directory >>
+        #           infracost-api-key: << parameters.infracost-api-key >>
+        #           infracost-additional-args: << parameters.infracost-additional-args >>
+        # - when:
+        #     name: Run after-static-analysis lifecycle hook steps
+        #     condition: << parameters.after-static-analysis >>
+        #     working_directory: << parameters.working-directory >>
+        #     steps: << parameters.after-static-analysis >>
