@@ -32,6 +32,42 @@ on:
         type: string
         default: "false"
 
+      tflint-version:
+        description: Specify tflint version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
+      checkov-version:
+        description: Specify checkov version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
+      snyk-version:
+        description: Specify snyk version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
+      terrascan-version:
+        description: Specify terrascan version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
+      infracost-version:
+        description: Specify infracost version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
+      trivy-version:
+        description: Specify trivy version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
       before-static-analysis:
         description: optionally call ./.github/actions/before-static-analysis before performing static analysis
         required: false
@@ -69,15 +105,12 @@ jobs:
         with:
           cosign-version: ${{ inputs.cosign-version }}
           terraform-version: ${{ inputs.terraform-version }}
-
-        # - install:
-        #     terraform-version: << parameters.terraform-version >>
-        #     tflint-version: << parameters.tflint-version >>
-        #     trivy-version: << parameters.trivy-version >>
-        #     checkov-version: << parameters.checkov-version >>
-        #     snyk-version: << parameters.snyk-version >>
-        #     terrascan-version: << parameters.terrascan-version >>
-        #     infracost-version: << parameters.infracost-version >>
+          tflint-version: ${{ inputs.tflint-version }}
+          trivy-version: ${{ inputs.trivy-version }}
+          checkov-version: ${{ inputs.checkov-version }}
+          snyk-version: ${{ inputs.snyk-version }}
+          terrascan-version: ${{ inputs.terrascan-version }}
+          infracost-version: ${{ inputs.infracost-version }}
 
         # - run:
         #     name: terraform init
