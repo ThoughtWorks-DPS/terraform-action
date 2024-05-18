@@ -1,10 +1,15 @@
 # yamllint disable rule:line-length
 # yamllint disable rule:truthy
 ---
-run-name: static code analysis
+name: static code analysis
 
 on:
   workflow_call:
+
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        description: 1password vault services account token
+        required: false
 
     inputs:
 
@@ -14,16 +19,25 @@ on:
         type: string
         default: .
 
+      job-container-image:
+        description: default is latest
+        type: string
+        required: false
+        default: "twdps/gha-container-infra-aws:latest"
+
 jobs:
 
   static-code-analysis:
     name: static code analysis
     runs-on: ubuntu-latest
-    container: twdps/gha-container-base-image:alpine-stable
+    container: ${{ inputs.job-container-image }}
+
+    env:
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
     steps:
       - name: checkout code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b          # v4.1.4
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29      # v4.1.6
 
       - name: check context
         shell: bash

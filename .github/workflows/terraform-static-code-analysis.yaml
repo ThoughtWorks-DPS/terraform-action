@@ -206,6 +206,12 @@ on:
         type: string
         default: echo "none"
 
+      job-container-image:
+        description: default is latest
+        type: string
+        required: false
+        default: "twdps/gha-container-infra-aws:latest"
+
 jobs:
 
   terraform-static-code-analysis:
