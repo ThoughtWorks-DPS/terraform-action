@@ -20,12 +20,6 @@ on:
         type: string
         default: .
 
-      cosign-version:
-        description: Specify cosign version or "installed" to perform scan. Leave blank to skip.
-        required: false
-        type: string
-        default: "false"
-
       terraform-version:
         description: Specify terraform version or "installed" to perform scan. Leave blank to skip.
         required: false
@@ -186,6 +180,12 @@ on:
         type: string
         default: "false"
 
+      after-static-analysis:
+        description: optionally call ./.github/actions/after-static-analysis after performing static analysis
+        required: false
+        type: string
+        default: "false"
+
       job-container-image:
         description: default is latest
         type: string
@@ -215,7 +215,7 @@ jobs:
       - name: install workflow dependencies
         uses: ThoughtWorks-DPS/terraform-action/install@main
         with:
-          cosign-version: ${{ inputs.cosign-version }}
+          working-directory: ${{ inputs.working-directory }}
           terraform-version: ${{ inputs.terraform-version }}
           tflint-version: ${{ inputs.tflint-version }}
           trivy-version: ${{ inputs.trivy-version }}
@@ -278,16 +278,8 @@ jobs:
           terrascan-policy-type: ${{ inputs.terrascan-policy-type}}
           terrascan-custom-scan-args: ${{ inputs.terrascan-custom-scan-args}}
 
-        # - when:
-        #     name: run infracost analysis
-        #     condition: << parameters.infracost-scan >>
-        #     steps:
-        #       - infracost:
-        #           working-directory: << parameters.working-directory >>
-        #           infracost-api-key: << parameters.infracost-api-key >>
-        #           infracost-additional-args: << parameters.infracost-additional-args >>
-        # - when:
-        #     name: Run after-static-analysis lifecycle hook steps
-        #     condition: << parameters.after-static-analysis >>
-        #     working_directory: << parameters.working-directory >>
-        #     steps: << parameters.after-static-analysis >>
+      - name: run custom after-static-analysis action
+        if: ${{ inputs.after-static-analysis != 'false' }}
+        uses: ./.github/actions/after-static-analysis
+        with:
+          instance: ${{ inputs.after-static-analysis }}

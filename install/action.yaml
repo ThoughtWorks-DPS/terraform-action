@@ -55,6 +55,7 @@ runs:
   steps:
     - name: install cosign
       if: ${{ inputs.cosign-version != 'false' }}
+      working-directory: ${{ inputs.working-directory }}
       uses: sigstore/cosign-installer@main
       with:
         cosign-release: v${{ inputs.cosign-version }}

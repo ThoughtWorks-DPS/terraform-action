@@ -1,0 +1,135 @@
+# yamllint disable rule:line-length
+# yamllint disable rule:truthy
+# yamllint disable rule:comments-indentation
+---
+name: terraform plan
+
+on:
+  workflow_call:
+
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        description: 1password vault services account token
+        required: false
+
+    inputs:
+
+      working-directory:
+        description: Set working directory. Default is ./.
+        required: false
+        type: string
+        default: .
+
+      terraform-version:
+        description: Specify terraform version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
+      checkov-version:
+        description: Specify checkov version or "installed" to perform scan. Leave blank to skip.
+        required: false
+        type: string
+        default: "false"
+
+      checkov-scan:
+        description: perform checkov scan of terraform files
+        required: false
+        type: string
+        default: "false"
+
+      checkov-additional-args:
+        description: Set specific commandline arguments. Default is "-d .".
+        required: false
+        type: string
+        default: "-d ."
+
+      before-init:
+        description: optionally call ./.github/actions/before-init before performing terraform init
+        required: false
+        type: string
+        default: "false"
+
+      after-init:
+        description: optionally call ./.github/actions/after-init after performing terraform init
+        required: false
+        type: string
+        default: "false"
+
+      after-plan:
+        description: optionally call ./.github/actions/after-plan after performing terraform plan
+        required: false
+        type: string
+        default: "false"
+jobs:
+
+  terraform-plan:
+    name: terraform
+    runs-on: ubuntu-latest
+    container: ${{ inputs.job-container-image }}
+
+    env:
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29      # v4.1.6
+
+      - name: install terraform workflow packages
+        uses: ThoughtWorks-DPS/terraform-action/install@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          terraform-version: ${{ inputs.terraform-version }}
+          checkov-version: ${{ inputs.checkov-version }}
+
+      - name: run custom before-init action
+        if: ${{ inputs.before-init != 'false' }}
+        uses: ./.github/actions/before-init
+        with:
+          instance: ${{ inputs.before-init }}
+
+  # - when:
+  #     name: Confirm or Create tfcloud workspace in local-execute-mode
+  #     condition: << parameters.tfc-workspace >>
+  #     steps:
+  #       - use-tfc-local-mode:
+  #           tfc-workspace: << parameters.tfc-workspace >>
+  #           tfc-organization: << parameters.tfc-organization >>
+  #           tfe-token: << parameters.tfe-token >>
+
+      # - name: terraform init
+      #   working-directory: ${{ inputs.working-directory }}
+      #   shell: bash
+      #   run: |
+      #     terraform version
+      #     terraform init ${{ inputs.terraform-init-additional-args }}
+
+# - when:
+#       name: Run after-terraform-init lifecycle hook steps
+#       condition: << parameters.after-terraform-init >>
+#       working_directory: << parameters.working-directory >>
+#       steps: << parameters.after-terraform-init >>
+#   - run:
+#       name: terraform plan
+#       working_directory: << parameters.working-directory >>
+#       command: |
+#         terraform plan \
+#           <<#parameters.terraform-var-file>> -var-file=<< parameters.terraform-var-file >> <</parameters.terraform-var-file>> \
+#           <<#parameters.terraform-plan-additional-args>> << parameters.terraform-plan-additional-args >> <</parameters.terraform-plan-additional-args>> \
+#           --out tfplan.binary
+#         terraform show -json tfplan.binary | jq '.' > << parameters.terraform-plan-outfile >>
+
+
+      # - name: optional checkov scan of terraform source files
+      #   uses: ThoughtWorks-DPS/terraform-action/checkov@main
+      #   with:
+      #     working-directory: ${{ inputs.working-directory }}
+      #     checkov-version: ${{ inputs.checkov-version }}
+      #     checkov-additional-args: ${{ inputs.checkov-additional-args }}
+
+
+
+      # - name: run custom after-analysis scripts
+      #   working-directory: ${{ inputs.working-directory }}
+      #   shell: bash
+      #   run: ${{ inputs.after-static-analysis }}
