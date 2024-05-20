@@ -26,6 +26,18 @@ on:
         type: string
         default: "false"
 
+      tfc-workspace:
+        description: Create and/or set local-mode workspace.
+        required: false
+        type: string
+        default: ""
+
+      tfc-organization:
+        description: Terraform cloud organization name.
+        required: false
+        type: string
+        default: ""
+
       checkov-version:
         description: Specify checkov version or "installed" to perform scan. Leave blank to skip.
         required: false
@@ -43,6 +55,26 @@ on:
         required: false
         type: string
         default: "-d ."
+
+      terraform-plan-outfile:
+        description: Provide name of terraform plan output file for targeted scan.
+        required: false
+        type: string
+        default: "tfplan.json"
+
+      terraform-plan-additional-args:
+        description: |
+          Include any additional terraform plan command arguments. Can be used in conjunction with
+          terraform-var-file parameter or an override.
+        required: false
+        type: string
+        default: ""
+
+      terraform-var-file:
+        description: Include terraform -var-file parameter.
+        required: false
+        type: string
+        default: ""
 
       before-init:
         description: optionally call ./.github/actions/before-init before performing terraform init
@@ -88,45 +120,45 @@ jobs:
         with:
           instance: ${{ inputs.before-init }}
 
-  # - when:
-  #     name: Confirm or Create tfcloud workspace in local-execute-mode
-  #     condition: << parameters.tfc-workspace >>
-  #     steps:
-  #       - use-tfc-local-mode:
-  #           tfc-workspace: << parameters.tfc-workspace >>
-  #           tfc-organization: << parameters.tfc-organization >>
-  #           tfe-token: << parameters.tfe-token >>
+      - name: Confirm or Create tfcloud workspace in local-execute-mode
+        if: ${{ inputs.tfc-workspace != '' }}
+        uses: ThoughtWorks-DPS/terraform-action/use-tfc-local-mode@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          tfc-workspace: ${{ inputs.tfc-workspace }}
+          tfc-organization: ${{ inputs.tfc-organization }}
 
-      # - name: terraform init
-      #   working-directory: ${{ inputs.working-directory }}
-      #   shell: bash
-      #   run: |
-      #     terraform version
-      #     terraform init ${{ inputs.terraform-init-additional-args }}
+      - name: terraform init
+        working-directory: ${{ inputs.working-directory }}
+        shell: bash
+        run: |
+          terraform version
+          terraform init ${{ inputs.terraform-init-additional-args }}
 
-# - when:
-#       name: Run after-terraform-init lifecycle hook steps
-#       condition: << parameters.after-terraform-init >>
-#       working_directory: << parameters.working-directory >>
-#       steps: << parameters.after-terraform-init >>
-#   - run:
-#       name: terraform plan
-#       working_directory: << parameters.working-directory >>
-#       command: |
-#         terraform plan \
-#           <<#parameters.terraform-var-file>> -var-file=<< parameters.terraform-var-file >> <</parameters.terraform-var-file>> \
-#           <<#parameters.terraform-plan-additional-args>> << parameters.terraform-plan-additional-args >> <</parameters.terraform-plan-additional-args>> \
-#           --out tfplan.binary
-#         terraform show -json tfplan.binary | jq '.' > << parameters.terraform-plan-outfile >>
+      - name: run custom after-init action
+        if: ${{ inputs.after-init != 'false' }}
+        uses: ./.github/actions/after-init
+        with:
+          instance: ${{ inputs.after-init }}
 
-      # - name: optional checkov scan of terraform source files
-      #   uses: ThoughtWorks-DPS/terraform-action/checkov@main
-      #   with:
-      #     working-directory: ${{ inputs.working-directory }}
-      #     checkov-version: ${{ inputs.checkov-version }}
-      #     checkov-additional-args: ${{ inputs.checkov-additional-args }}
+      - name: run terraform plan in working directory
+        uses: ThoughtWorks-DPS/terraform-action/plan@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          terraform-plan-outfile: ${{ inputs.terraform-plan-outfile }}
+          terraform-plan-additional-args: ${{ inputs.terraform-plan-additional-args }}
+          terraform-var-file: ${{ inputs.terraform-var-file }}
 
-      # - name: run custom after-analysis scripts
-      #   working-directory: ${{ inputs.working-directory }}
-      #   shell: bash
-      #   run: ${{ inputs.after-static-analysis }}
+      - name: perform checkov scan of terraform source files
+        if: ${{ inputs.checkov-scan == 'true' }}
+        uses: ThoughtWorks-DPS/terraform-action/checkov-scan@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          terraform-plan-outfile: ${{ inputs.terraform-plan-outfile }}
+          checkov-additional-args: ${{ inputs.checkov-additional-args }}
+
+      - name: run custom after-plan action
+        if: ${{ inputs.after-plan != 'false' }}
+        uses: ./.github/actions/after-plan
+        with:
+          instance: ${{ inputs.after-plan }}

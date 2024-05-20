@@ -1,0 +1,47 @@
+# yamllint disable rule:line-length
+---
+name: terraform plan
+
+description: run terraform plan in current working directory
+
+inputs:
+
+  working-directory:
+    description: Set working directory. Default is ./.
+    required: false
+    default: "."
+
+  terraform-plan-outfile:
+    description: Provide name of terraform plan output file for targeted scan.
+    required: false
+    default: "tfplan.json"
+
+  terraform-plan-additional-args:
+    description: |
+      Include any additional terraform plan command arguments. Can be used in conjunction with
+      terraform-var-file parameter or an override.
+    required: false
+    default: ""
+
+  terraform-var-file:
+    description: Include terraform -var-file parameter.
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: run terraform plan in current working directory
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        #!/usr/bin/env bash
+        set -eo pipefail
+
+        if [[ "${{ inputs.terraform-var-file}}" != "" ]]; then
+          terraform plan  -var-file=${{ inputs.terraform-var-file }} ${{ inputs.terraform-plan-additional-args }} --out tfplan.binary
+        else
+          terraform plan  ${{ inputs.terraform-plan-additional-args }} --out tfplan.binary
+        fi
+        terraform show -json tfplan.binary | jq '.' > ${{ inputs.terraform-plan-outfile }}

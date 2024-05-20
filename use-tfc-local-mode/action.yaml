@@ -9,6 +9,11 @@ description: |
 
 inputs:
 
+  working-directory:
+    description: specific folder in which to run the commands
+    required: false
+    default: "."
+
   tfc-organization:
     description: terraform cloud organization Name
     required: true
@@ -17,17 +22,13 @@ inputs:
     description: Create and/or set local-mode workspace
     required: true
 
-  # tfe-token:
-  #   description: terraform team-api token. Uses $TFE_TOKEN by default
-  #   type: string
-  #   default: $TFE_TOKEN
-
 runs:
   using: "composite"
 
   steps:
 
     - name: use tfc local mode
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       env:
         TFC_ORGANIZATION: ${{ inputs.tfc-organization }}
