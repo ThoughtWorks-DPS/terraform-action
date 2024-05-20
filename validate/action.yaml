@@ -1,0 +1,29 @@
+# yamllint disable rule:line-length
+---
+name: validate
+
+description: Confirm canonical format and validate terraform syntax.
+
+inputs:
+
+  working-directory:
+    description: specific folder in which to run the commands
+    required: false
+    default: "."
+
+runs:
+  using: "composite"
+
+  steps:
+
+    - name: confirm canonical format of terraform files
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        terraform version
+        terraform fmt -check=false
+
+    - name: validate terraform files
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: terraform validate

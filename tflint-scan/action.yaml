@@ -1,6 +1,6 @@
 # yamllint disable rule:line-length
 ---
-name: tflint
+name: tflint scan
 
 description: |
   Run terraform-linters/tflint in working-directory.
@@ -16,13 +16,6 @@ inputs:
     description: Set working directory. Default is ./.
     required: false
     default: "."
-
-  tflint-version:
-    description: |
-      Specify tflint version to perform scan. Set version "installed" to
-      perform scan with the version already installed on the Runner.
-    required: false
-    default: ""
 
   tflint-provider:
     description: Cloud provider. aws, google, or azurerm.
@@ -60,11 +53,10 @@ runs:
           }
         EOD
         }
-        if [[ "${{ inputs.tflint-version }}" != "" ]]; then
-          echo "Perform tflint scan"
-          install_provider_plugin
-          tflint --version
-          cat .tflint.hcl
-          tflint --init
-          tflint ${{ inputs.tflint-additional-args }}
-        fi
+
+        echo "Perform tflint scan"
+        install_provider_plugin
+        tflint --version
+        cat .tflint.hcl
+        tflint --init
+        tflint ${{ inputs.tflint-additional-args }}

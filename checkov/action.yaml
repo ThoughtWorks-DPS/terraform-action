@@ -11,13 +11,6 @@ inputs:
     required: false
     default: "."
 
-  checkov-version:
-    description: |
-      Specify checkov version to perform scan. Set version "installed" to
-      perform scan with the version already installed on the Runner.
-    required: false
-    default: ""
-
   terraform-plan-outfile:
     description: Provide name of terraform plan output file for targeted scan.
     required: false
@@ -37,12 +30,12 @@ runs:
       shell: bash
       run: |
         #!/usr/bin/env bash
-        if [[ "${{ inputs.checkov-version }}" != "" ]]; then
-          echo "Perform checkov scan"
-          checkov --version
-          if [[ "${{ inputs.terraform-plan-outfile }}" != "" ]]; then
-            checkov -f ${{ inputs.terraform-plan-outfile }} ${{ inputs.checkov-additional-args }}
-          else
-            checkov ${{ inputs.checkov-additional-args }}
-          fi
+        set -eo pipefail
+
+        echo "Perform checkov scan"
+        checkov --version
+        if [[ "${{ inputs.terraform-plan-outfile }}" != "" ]]; then
+          checkov -f ${{ inputs.terraform-plan-outfile }} ${{ inputs.checkov-additional-args }}
+        else
+          checkov ${{ inputs.checkov-additional-args }}
         fi

@@ -32,17 +32,69 @@ on:
         type: string
         default: "false"
 
+      terraform-init-additional-args:
+        description: |
+          Include any additional terraform init command arguments.
+          Default is -backend=false.
+        required: false
+        type: string
+        default: -backend=false
+
+      terraform-plan-outfile:
+        description: Provide name of terraform plan output file for targeted scan.
+        required: false
+        type: string
+        default: ""
+
       tflint-version:
         description: Specify tflint version or "installed" to perform scan. Leave blank to skip.
         required: false
         type: string
         default: "false"
 
+      tflint-scan:
+        description: perform tflint scan of terraform files
+        required: false
+        type: string
+        default: "false"
+
+      tflint-provider:
+        description: Cloud provider. aws, google, or azurerm
+        required: false
+        type: string
+        default: ""
+
+      tflint-provider-version:
+        description: Provider plugin version.
+        required: false
+        type: string
+        default: ""
+
+      tflint-additional-args:
+        description: |
+          Include any additional tflint commandline arguments. Note: not all
+          options can be successfully used in a pipeline.
+        required: false
+        type: string
+        default: ""
+
       checkov-version:
         description: Specify checkov version or "installed" to perform scan. Leave blank to skip.
         required: false
         type: string
         default: "false"
+
+      checkov-scan:
+        description: perform checkov scan of terraform files
+        required: false
+        type: string
+        default: "false"
+
+      checkov-additional-args:
+        description: Set specific commandline arguments. Default is "-d .".
+        required: false
+        type: string
+        default: "-d ."
 
       snyk-version:
         description: Specify snyk version or "installed" to perform scan. Leave blank to skip.
@@ -67,6 +119,18 @@ on:
         required: false
         type: string
         default: "false"
+
+      trivy-scan:
+        description: perform trivy scan of terraform source files
+        required: false
+        type: string
+        default: "false"
+
+      trivy-commandline-args:
+        description: Provide additional trivy commandline arguments.
+        required: false
+        type: string
+        default: "config . --exit-code 1"
 
       before-static-analysis:
         description: optionally call ./.github/actions/before-static-analysis before performing static analysis
@@ -112,40 +176,42 @@ jobs:
           terrascan-version: ${{ inputs.terrascan-version }}
           infracost-version: ${{ inputs.infracost-version }}
 
-        # - run:
-        #     name: terraform init
-        #     working_directory: << parameters.working-directory >>
-        #     command: |
-        #       terraform version
-        #       terraform init << parameters.terraform-init-additional-args >>
-        # - when:
-        #     name: perform terraform validate
-        #     condition: << parameters.terraform-validate >>
-        #     steps:
-        #       - validate:
-        #           working-directory: << parameters.working-directory >>
-        # - when:
-        #     name: perform tflint scan of terraform source files
-        #     condition: << parameters.tflint-scan >>
-        #     steps:
-        #       - tflint:
-        #           working-directory: << parameters.working-directory >>
-        #           tflint-provider: << parameters.tflint-provider >>
-        #           tflint-additional-args: << parameters.tflint-additional-args >>
-        # - when:
-        #     name: perform trivy scan of terraform source files
-        #     condition: << parameters.trivy-scan >>
-        #     steps:
-        #       - trivy:
-        #           working-directory: << parameters.working-directory >>
-        #           trivy-commandline-args: << parameters.trivy-commandline-args >>
-        # - when:
-        #     name: run checkov scan of terraform source files
-        #     condition: << parameters.checkov-scan >>
-        #     steps:
-        #       - checkov:
-        #           working-directory: << parameters.working-directory >>
-        #           checkov-additional-args: << parameters.checkov-additional-args >>
+      - name: terraform init
+        working-directory: ${{ inputs.working-directory }}
+        shell: bash
+        run: |
+          terraform version
+          terraform init ${{ inputs.terraform-init-additional-args }}
+
+      - name: terraform validate
+        uses: ThoughtWorks-DPS/terraform-action/validate@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+
+      - name: perform tflint scan of terraform source files
+        if: ${{ inputs.tflint-scan == 'true' }}
+        uses: ThoughtWorks-DPS/terraform-action/tflint-scan@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          tflint-provider: ${{ inputs.tflint-provider }}
+          tflint-provider-version: ${{ inputs.tflint-provider-version }}
+          tflint-additional-args: ${{ inputs.tflint-additional-args }}
+
+      - name: perform trivy scan of terraform source files
+        if: ${{ inputs.trivy-scan == 'true' }}
+        uses: ThoughtWorks-DPS/terraform-action/trivy-scan@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          trivy-commandline-args: ${{ inputs.trivy-commandline-args }}
+
+      - name: perform checkov scan of terraform source files
+        if: ${{ inputs.checkov-scan == 'true' }}
+        uses: ThoughtWorks-DPS/terraform-action/checkov-scan@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          terraform-plan-outfile: ${{ inputs.terraform-plan-outfile }}
+          checkov-additional-args: ${{ inputs.checkov-additional-args }}
+
         # - when:
         #     name: run Snyk IaC scan of terraform source files
         #     condition: << parameters.snyk-scan >>
