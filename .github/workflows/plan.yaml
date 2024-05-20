@@ -119,15 +119,12 @@ jobs:
 #           --out tfplan.binary
 #         terraform show -json tfplan.binary | jq '.' > << parameters.terraform-plan-outfile >>
 
-
       # - name: optional checkov scan of terraform source files
       #   uses: ThoughtWorks-DPS/terraform-action/checkov@main
       #   with:
       #     working-directory: ${{ inputs.working-directory }}
       #     checkov-version: ${{ inputs.checkov-version }}
       #     checkov-additional-args: ${{ inputs.checkov-additional-args }}
-
-
 
       # - name: run custom after-analysis scripts
       #   working-directory: ${{ inputs.working-directory }}

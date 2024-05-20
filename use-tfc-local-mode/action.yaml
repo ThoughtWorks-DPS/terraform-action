@@ -1,4 +1,5 @@
 # yamllint disable rule:line-length
+# yamllint disable rule:comments-indentation
 ---
 name: use-tfc-local-mode
 
@@ -23,7 +24,7 @@ inputs:
 
 runs:
   using: "composite"
-  
+
   steps:
 
     - name: use tfc local mode
