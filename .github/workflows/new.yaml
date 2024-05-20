@@ -174,7 +174,6 @@ jobs:
           checkov-version: ${{ inputs.checkov-version }}
           snyk-version: ${{ inputs.snyk-version }}
           terrascan-version: ${{ inputs.terrascan-version }}
-          infracost-version: ${{ inputs.infracost-version }}
 
       - name: terraform init
         working-directory: ${{ inputs.working-directory }}
