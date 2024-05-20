@@ -102,17 +102,65 @@ on:
         type: string
         default: "false"
 
-      terrascan-version:
-        description: Specify terrascan version or "installed" to perform scan. Leave blank to skip.
+      snyk-organization:
+        description: Snyk organisation name.
+        required: false
+        type: string
+        default: ""
+
+      snyk-scan:
+        description: perform snyk iac scan of terraform files
         required: false
         type: string
         default: "false"
 
-      infracost-version:
-        description: Specify infracost version or "installed" to perform scan. Leave blank to skip.
+      snyk-token:
+        description: Snyk API token.
+        required: false
+        type: string
+        default: ""
+
+      snyk-additional-args:
+        description: Provide additional commandline arguments.
+        required: false
+        type: string
+        default: ""
+
+      terrascan-version:
+        description: specify terrascan version or "installed" to perform scan. Leave blank to skip.
         required: false
         type: string
         default: "false"
+
+      terrascan-scan:
+        description: perform terrascan scan of terraform source files
+        required: false
+        type: string
+        default: "false"
+
+      terrascan-init-args:
+        description: Provide custom init command flags.
+        required: false
+        type: string
+        default: ""
+
+      terrascan-iac-type:
+        description: Terrascan iac provider types.
+        required: false
+        type: string
+        default: ""
+
+      terrascan-policy-type:
+        description: Terrascan preset policy types. Default is all.
+        required: false
+        type: string
+        default: "all"
+
+      terrascan-custom-scan-args:
+        description: Override default settings with any valid terrascan scan flags.
+        required: false
+        type: string
+        default: ""
 
       trivy-version:
         description: Specify trivy version or "installed" to perform scan. Leave blank to skip.
@@ -211,25 +259,25 @@ jobs:
           terraform-plan-outfile: ${{ inputs.terraform-plan-outfile }}
           checkov-additional-args: ${{ inputs.checkov-additional-args }}
 
-        # - when:
-        #     name: run Snyk IaC scan of terraform source files
-        #     condition: << parameters.snyk-scan >>
-        #     steps:
-        #       - snyk:
-        #           working-directory: << parameters.working-directory >>
-        #           snyk-token: << parameters.snyk-token >>
-        #           snyk-organization: << parameters.snyk-organization >>
-        #           snyk-additional-args: << parameters.snyk-additional-args >>
-        # - when:
-        #     name: run terrascan on repository files
-        #     condition: << parameters.terrascan-scan >>
-        #     steps:
-        #       - terrascan:
-        #           working-directory: << parameters.working-directory >>
-        #           terrascan-init-args: << parameters.terrascan-init-args >>
-        #           terrascan-iac-type: << parameters.terrascan-iac-type >>
-        #           terrascan-policy-type: << parameters.terrascan-policy-type >>
-        #           terrascan-custom-scan-args: << parameters.terrascan-custom-scan-args >>
+      - name: perform snyk iac scan of terraform source files
+        if: ${{ inputs.snyk-scan == 'true' }}
+        uses: ThoughtWorks-DPS/terraform-action/snyk-scan@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          snyk-token: ${{ inputs.snyk-token }}
+          snyk-organization: ${{ inputs.snyk-organization }}
+          snyk-additional-args: ${{ inputs.snyk-additional-args }}
+
+      - name: perform terrascan on repository files
+        if: ${{ inputs.terrascan-scan == 'true' }}
+        uses: ThoughtWorks-DPS/terraform-action/terrascan-scan@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          terrascan-init-args: ${{ inputs.terrascan-init-args}}
+          terrascan-iac-type: ${{ inputs.terrascan-iac-type}}
+          terrascan-policy-type: ${{ inputs.terrascan-policy-type}}
+          terrascan-custom-scan-args: ${{ inputs.terrascan-custom-scan-args}}
+
         # - when:
         #     name: run infracost analysis
         #     condition: << parameters.infracost-scan >>

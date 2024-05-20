@@ -16,13 +16,6 @@ inputs:
     required: false
     default: ""
 
-  snyk-version:
-    description: |
-      Specify snyk version to perform scan. Set version "installed" to
-      perform scan with the version already installed on the Runner.
-    required: false
-    default: ""
-
   snyk-organization:
     description: Snyk organisation name.
     required: false
@@ -47,9 +40,9 @@ runs:
       shell: bash
       run: |
         #!/usr/bin/env bash
-        if [[ "${{ inputs.snyk-version }}" != "" ]]; then
-          echo "Perform snyk scan"
-          export SNYK_TOKEN=${{ inputs.snyk-token }}
-          snyk --version
-          snyk iac test --org=${{ inputs.snyk-organization }} ${{ inputs.checkov-additional-args }} ${{ inputs.terraform-plan-outfile }}
-        fi
+        set -eo pipefail
+
+        echo "Perform snyk scan"
+        export SNYK_TOKEN=${{ inputs.snyk-token }}
+        snyk --version
+        snyk iac test --org=${{ inputs.snyk-organization }} ${{ inputs.checkov-additional-args }} ${{ inputs.terraform-plan-outfile }}
