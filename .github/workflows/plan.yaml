@@ -26,6 +26,11 @@ on:
         type: string
         default: "false"
 
+      workspace:
+        description: terraform environment workspace
+        required: true
+        type: string
+
       tfc-workspace:
         description: Create and/or set local-mode workspace.
         required: false
@@ -102,6 +107,7 @@ jobs:
 
     env:
       OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      TF_WORKSPACE: ${{ inputs.workspace }}
 
     steps:
       - name: checkout code
