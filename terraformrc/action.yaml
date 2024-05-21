@@ -1,0 +1,22 @@
+# yamllint disable rule:line-length
+---
+name: terraform plan
+
+description: set contents of ~/.terraformrc from TFE_TOKEN environment variable.
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: set contents of ~/.terraformrc
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        #!/usr/bin/env bash
+        set -eo pipefail
+
+        cat \<<EOF > ~/.terraformrc
+          credentials "app.terraform.io" {
+            token = "${TFE_TOKEN}"
+          }
+        EOF
