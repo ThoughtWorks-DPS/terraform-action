@@ -17,7 +17,7 @@ runs:
 
         ls -la
         pwd
-        la -ls ~/
+        ls -la ~/
         cat \<<EOF > ~/.terraformrc
         credentials "app.terraform.io" {
           token = "${TFE_TOKEN}"
