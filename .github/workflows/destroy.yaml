@@ -2,7 +2,7 @@
 # yamllint disable rule:truthy
 # yamllint disable rule:comments-indentation
 ---
-name: terraform plan
+name: terraform destroy
 
 on:
   workflow_call:
@@ -31,45 +31,9 @@ on:
         required: true
         type: string
 
-      tfc-workspace:
-        description: Create and/or set local-mode workspace.
-        required: false
-        type: string
-        default: ""
-
-      tfc-organization:
-        description: Terraform cloud organization name.
-        required: false
-        type: string
-        default: ""
-
-      checkov-version:
-        description: Specify checkov version or "installed" to perform scan. Leave blank to skip.
-        required: false
-        type: string
-        default: "false"
-
-      checkov-scan:
-        description: perform checkov scan of terraform files
-        required: false
-        type: string
-        default: "false"
-
-      checkov-additional-args:
-        description: Set specific commandline arguments. Default is "-d .".
-        required: false
-        type: string
-        default: "-d ."
-
-      terraform-plan-outfile:
-        description: Provide name of terraform plan output file for targeted scan.
-        required: false
-        type: string
-        default: "tfplan.json"
-
-      terraform-plan-additional-args:
+      terraform-destroy-additional-args:
         description: |
-          Include any additional terraform plan command arguments. Can be used in conjunction with
+          Include any additional terraform apply command arguments. Can be used in conjunction with
           terraform-var-file parameter or an override.
         required: false
         type: string
@@ -93,8 +57,8 @@ on:
         type: string
         default: "false"
 
-      after-plan:
-        description: optionally call ./.github/actions/after-plan after performing terraform plan
+      after-destroy:
+        description: optionally call ./.github/actions/after-destroy after performing terraform destroy
         required: false
         type: string
         default: "false"
@@ -106,8 +70,8 @@ on:
         default: "twdps/gha-container-infra-aws:latest"
 jobs:
 
-  terraform-plan:
-    name: terraform plan
+  terraform-destroy:
+    name: terraform apply
     runs-on: ubuntu-latest
     container: ${{ inputs.job-container-image }}
 
@@ -124,21 +88,12 @@ jobs:
         with:
           working-directory: ${{ inputs.working-directory }}
           terraform-version: ${{ inputs.terraform-version }}
-          checkov-version: ${{ inputs.checkov-version }}
 
       - name: run custom before-init action
         if: ${{ inputs.before-init != 'false' }}
         uses: ./.github/actions/before-init
         with:
           instance: ${{ inputs.before-init }}
-
-      - name: Confirm or Create tfcloud workspace in local-execute-mode
-        if: ${{ inputs.tfc-workspace != '' }}
-        uses: ThoughtWorks-DPS/terraform-action/use-tfc-local-mode@main
-        with:
-          working-directory: ${{ inputs.working-directory }}
-          tfc-workspace: ${{ inputs.tfc-workspace }}
-          tfc-organization: ${{ inputs.tfc-organization }}
 
       - name: terraform init
         working-directory: ${{ inputs.working-directory }}
@@ -153,24 +108,15 @@ jobs:
         with:
           instance: ${{ inputs.after-init }}
 
-      - name: run terraform plan in working directory
-        uses: ThoughtWorks-DPS/terraform-action/plan@main
+      - name: run terraform destroy in working directory
+        uses: ThoughtWorks-DPS/terraform-action/destroy@main
         with:
           working-directory: ${{ inputs.working-directory }}
-          terraform-plan-outfile: ${{ inputs.terraform-plan-outfile }}
-          terraform-plan-additional-args: ${{ inputs.terraform-plan-additional-args }}
+          terraform-destroy-additional-args: ${{ inputs.terraform-apply-additional-args }}
           terraform-var-file: ${{ inputs.terraform-var-file }}
 
-      - name: perform checkov scan of terraform source files
-        if: ${{ inputs.checkov-scan == 'true' }}
-        uses: ThoughtWorks-DPS/terraform-action/checkov-scan@main
+      - name: run custom after-destroy action
+        if: ${{ inputs.after-destroy != 'false' }}
+        uses: ./.github/actions/after-destroy
         with:
-          working-directory: ${{ inputs.working-directory }}
-          terraform-plan-outfile: ${{ inputs.terraform-plan-outfile }}
-          checkov-additional-args: ${{ inputs.checkov-additional-args }}
-
-      - name: run custom after-plan action
-        if: ${{ inputs.after-plan != 'false' }}
-        uses: ./.github/actions/after-plan
-        with:
-          instance: ${{ inputs.after-plan }}
+          instance: ${{ inputs.after-destroy }}

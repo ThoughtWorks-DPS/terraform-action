@@ -1,0 +1,41 @@
+# yamllint disable rule:line-length
+---
+name: terraform apply
+
+description: run terraform apply in current working directory
+
+inputs:
+
+  working-directory:
+    description: Set working directory. Default is ./.
+    required: false
+    default: "."
+
+  terraform-apply-additional-args:
+    description: |
+      Include any additional terraform apply command arguments. Can be used in conjunction with
+      terraform-var-file parameter or an override.
+    required: false
+    default: ""
+
+  terraform-var-file:
+    description: Include terraform -var-file parameter.
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: run terraform apply in current working directory
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        #!/usr/bin/env bash
+        set -eo pipefail
+
+        if [[ "${{ inputs.terraform-var-file}}" != "" ]]; then
+          terraform apply -var-file=${{ inputs.terraform-var-file }} ${{ inputs.terraform-apply-additional-args }}  -auto-approve
+        else
+          terraform apply ${{ inputs.terraform-apply-additional-args }}  -auto-approve
+        fi
