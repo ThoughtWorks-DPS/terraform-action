@@ -98,6 +98,12 @@ on:
         required: false
         type: string
         default: "false"
+        
+      job-container-image:
+        description: default is latest
+        type: string
+        required: false
+        default: "twdps/gha-container-infra-aws:latest"
 jobs:
 
   terraform-plan:
