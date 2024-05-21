@@ -15,10 +15,7 @@ runs:
         #!/usr/bin/env bash
         set -eo pipefail
 
-        ls -la
-        pwd
-        ls -la ~/
-        cat \<<EOF > ~/.terraformrc
+        cat <<EOF > ~/.terraformrc
         credentials "app.terraform.io" {
           token = "${TFE_TOKEN}"
         }
